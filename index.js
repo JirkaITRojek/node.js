@@ -43,7 +43,7 @@ app.post('/savedata', urlencodedParser, (req, res) =>{
             /* Přesměrování na úvodní stránku serverové aplikace včetně odeslání stavové zprávy 301. */
     res.redirect(301, '/');});
     /* Reakce na požadavek odeslaný metodou get na adresu <server>/todolist */
-    app.get("/todolist", (req, res) => {
+    app.get("/zaznam", (req, res) => {
         csvtojson({ headers: ['ukol', 'predmet', 'zadani', 'odevzdani'] })
           .fromFile(path.join(__dirname, 'data/ukoly.csv'))
           .then(data => {
