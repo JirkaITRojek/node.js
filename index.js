@@ -6,6 +6,8 @@ const app = express();
 const bodyParser = require("body-parser");
 /* Připojení externího modulu moment (https://momentjs.com/) -knihovna pro formátování datových a časových údajů */
 const moment = require("moment");
+/* Připojení externího modulu csvtojson (https://www.npmjs.com/package/csvtojson) -knihovna usnadňující načtení dat z CSV do formátu JSON */
+const csvtojson = require('csvtojson');
 /* Připojení vestavěných modulů fs (práce se soubory) a path (cesty v adresářové struktuře) */
 const fs = require("fs");
 const path = require("path");
@@ -24,7 +26,7 @@ const urlencodedParser = bodyParser.urlencoded({extended: false});
 /* Ošetření požadavku poslaného metodou POST na adresu <server>/savedataUkládá data poslaná z webového formuláře do souboru CSV */
 app.post('/savedata', urlencodedParser, (req, res) =>{
     /* Do proměnné date bude pomocí knihovny MomentJS uloženo aktuální datum v podobě YYYY-MM-DD (rok-měsíc-den) */
-    let date = moment().format('YYYY-MM-DD');
+    let date = moment().format('DD-MM-YYYY');
     /* Vytvoření řetězce z dat odeslaných z formuláře v těle požadavku (req.body) a obsahu proměnné date.Data jsou obalena uvozovkami a oddělená čárkou. Escape sekvence \n provede ukončení řádku. */
     let str = `"${req.body.ukol}","${req.body.predmet}","${date}","${req.body.odevzdani}"\n`;
     /* Pomocí modulu fs a metody appendFile dojde k přidání připraveného řádku (proměnná str) do uvedeného souboru */
@@ -40,3 +42,21 @@ app.post('/savedata', urlencodedParser, (req, res) =>{
     });
             /* Přesměrování na úvodní stránku serverové aplikace včetně odeslání stavové zprávy 301. */
     res.redirect(301, '/');});
+    /* Reakce na požadavek odeslaný metodou get na adresu <server>/todolist */
+    app.get("/todolist", (req, res) =>{
+        /* Použití knihovny csvtojson k načtení dat ze souboru ukoly.csv. Atribut headers zjednodušuje pojmenování jednotlivých datových sloupců. */
+        /* Pro zpracování je použito tzv. promises, které pracují s částí .then (úspěšný průběh operace) a .catch (zachycení možných chyb) */
+        csvtojson({headers:['ukol','predmet','zadani','odevzdani']})
+        .fromFile(path.join(__dirname, 'data/ukoly.csv'))
+        .then(data =>{
+            /* Vypsání získaných dat ve formátu JSON do konzole */
+            console.log(data);
+            /* Vykreslení šablony index.pug i s předanými daty (objekt v druhém parametru) */
+            res.render('index', {nadpis: "Seznam úkolů", ukoly: data});})
+            .catch(err =>{
+                /* Vypsání případné chyby do konzole */
+                console.log(err);
+                /* Vykreslení šablony error.pug s předanými údaji o chybě */
+                res.render('error', {nadpis: "Chyba v aplikaci", chyba: err});
+                });
+             });
