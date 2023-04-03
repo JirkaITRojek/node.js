@@ -43,20 +43,15 @@ app.post('/savedata', urlencodedParser, (req, res) =>{
             /* Přesměrování na úvodní stránku serverové aplikace včetně odeslání stavové zprávy 301. */
     res.redirect(301, '/');});
     /* Reakce na požadavek odeslaný metodou get na adresu <server>/todolist */
-    app.get("/todolist", (req, res) =>{
-        /* Použití knihovny csvtojson k načtení dat ze souboru ukoly.csv. Atribut headers zjednodušuje pojmenování jednotlivých datových sloupců. */
-        /* Pro zpracování je použito tzv. promises, které pracují s částí .then (úspěšný průběh operace) a .catch (zachycení možných chyb) */
-        csvtojson({headers:['ukol','predmet','zadani','odevzdani']})
-        .fromFile(path.join(__dirname, 'data/ukoly.csv'))
-        .then(data =>{
-            /* Vypsání získaných dat ve formátu JSON do konzole */
-            console.log(data);
-            /* Vykreslení šablony index.pug i s předanými daty (objekt v druhém parametru) */
-            res.render('index', {nadpis: "Seznam úkolů", ukoly: data});})
-            .catch(err =>{
-                /* Vypsání případné chyby do konzole */
-                console.log(err);
-                /* Vykreslení šablony error.pug s předanými údaji o chybě */
-                res.render('error', {nadpis: "Chyba v aplikaci", chyba: err});
-                });
-             });
+    app.get("/todolist", (req, res) => {
+        csvtojson({ headers: ['ukol', 'predmet', 'zadani', 'odevzdani'] })
+          .fromFile(path.join(__dirname, 'data/ukoly.csv'))
+          .then(data => {
+            // seřazení dat podle data odevzdání
+            data.sort((a, b) => new Date(a.odevzdani) - new Date(b.odevzdani));
+            res.render('index', { nadpis: "Seznam úkolů", ukoly: data });
+          })
+          .catch(err => {
+            res.render('error', { nadpis: "Chyba v aplikaci", chyba: err });
+          });
+      });
