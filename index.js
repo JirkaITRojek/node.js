@@ -13,6 +13,10 @@ const path = require("path");
 const port = 3000;
 /* Identifikace složky obsahující statické soubory klientské části webu */
 app.use(express.static("public"));
+/* Nastavení typu šablonovacího engine na pug*/
+app.set("view engine", "pug");
+/* Nastavení složky, kde budou umístěny šablony pug */
+app.set("views", path.join(__dirname, "views"));
 /* Spuštění webového serveru */
 app.listen(port, () =>{console.log(`Server naslouchá na portu ${port}`);});
 /* Využití modulu body-parser pro parsování těla požadavku */
